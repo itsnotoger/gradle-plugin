@@ -1,5 +1,6 @@
 package oger.util.java
 
+import oger.util.java.GDriveLocator.locate
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import java.nio.file.Path
@@ -11,7 +12,9 @@ abstract class GDriveExtension {
     internal val fullPath: Provider<Path>
 
     init {
-        driveFolder.convention("${System.getenv("userprofile")}/Google Drive")
+        locate()?.let {
+            driveFolder.convention(it.toString())
+        }
         fullPath = driveFolder.zip(gDriveJars) { a: String, b: String -> Paths.get(a, b) }
     }
 }

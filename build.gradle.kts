@@ -1,6 +1,7 @@
 plugins {
+    groovy
+    kotlin("jvm") version "1.7.10"
     `java-gradle-plugin`
-    kotlin("jvm") version "1.7.0"
 }
 
 gradlePlugin {
@@ -17,19 +18,13 @@ version = "0.0.1-SNAPSHOT"
 
 repositories {
     gradlePluginPortal()
-}
-
-dependencies {
-    compileOnly("org.openjfx:javafx-plugin:0.0.13")
+    mavenCentral()
+//        flatDir {
+//        dirs(driveFolder)
+//    }
 }
 
 tasks {
-    compileJava {
-        options.encoding = "UTF-8"
-    }
-    compileTestJava {
-        options.encoding = "UTF-8"
-    }
     test {
         useJUnitPlatform()
     }
@@ -46,21 +41,22 @@ tasks {
 }
 
 val gDriveJars: String by project
-val driveFolder = "${System.getenv("userprofile")}/Google Drive$gDriveJars"
+apply("locate.gradle.kts")
+val locate: () -> File? by ext
+val driveFolder = "${locate()}/$gDriveJars"
 
-//repositories {
-//    flatDir {
-//        dirs(driveFolder)
-//    }
-//    mavenCentral()
-//}
-//
-//
-//dependencies {
-//    // https://mvnrepository.com/
-//    testImplementation("org.spockframework:spock-core:2.1-groovy-3.0")
-//    testImplementation("org.codehaus.groovy:groovy-all:3.0.11")
-//}
+dependencies {
+    compileOnly("org.openjfx:javafx-plugin:0.0.13")
+
+    testImplementation("org.jetbrains.kotlin:kotlin-stdlib:1.7.10")
+
+    testImplementation("org.junit.jupiter:junit-jupiter-engine:5.9.0-M1")
+    testImplementation("org.codehaus.groovy:groovy-all:3.0.9") {
+        because("java-gradle-plugin requires 3.0.9")
+    }
+    testImplementation("org.spockframework:spock-core:2.1-groovy-3.0")
+    testImplementation("cglib:cglib-nodep:3.3.0")
+}
 
 
 
