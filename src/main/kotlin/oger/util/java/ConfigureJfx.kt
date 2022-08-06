@@ -12,5 +12,11 @@ object ConfigureJfx {
             version = "17"
             modules("javafx.controls", "javafx.swing")
         }
+
+        project.dependencies.apply {
+            val jfxVersion = "17.0.2"
+            add("implementation", "org.openjfx:javafx-graphics:$jfxVersion:win")
+            add("implementation", "org.openjfx:javafx-controls:$jfxVersion:win")
+        }
     }
 }
