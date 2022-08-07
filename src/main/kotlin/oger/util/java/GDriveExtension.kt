@@ -1,3 +1,5 @@
+@file:Suppress("LeakingThis")
+
 package oger.util.java
 
 import oger.util.java.GDriveLocator.locate
@@ -9,12 +11,23 @@ import java.nio.file.Paths
 abstract class GDriveExtension {
     abstract val driveFolder: Property<String>
     abstract val gDriveJars: Property<String>
-    internal val fullPath: Provider<Path>
+    internal val fullJarPath: Provider<Path>
+
+    abstract val type: Property<Type>
+    abstract val gDriveApps: Property<String>
+    internal val fullAppPath: Provider<Path>
 
     init {
         locate()?.let {
             driveFolder.convention(it.toString())
         }
-        fullPath = driveFolder.zip(gDriveJars) { a: String, b: String -> Paths.get(a, b) }
+        fullJarPath = driveFolder.zip(gDriveJars) { a: String, b: String -> Paths.get(a, b) }
+
+        type.convention(Type.LIBRARY)
+        fullAppPath = driveFolder.zip(gDriveApps) { a: String, b: String -> Paths.get(a, b) }
     }
+}
+
+enum class Type {
+    LIBRARY, L4JAPPLICATION
 }

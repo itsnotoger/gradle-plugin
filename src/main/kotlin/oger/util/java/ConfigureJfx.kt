@@ -6,7 +6,7 @@ import org.openjfx.gradle.JavaFXOptions
 object ConfigureJfx {
 
     fun apply(project: Project) {
-        val javafx = project.extensions.getByName("javafx") as JavaFXOptions
+        val javafx = project.extensions.getByType(JavaFXOptions::class.java)
 
         javafx.apply {
             version = "17"

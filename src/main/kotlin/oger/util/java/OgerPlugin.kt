@@ -25,8 +25,14 @@ class OgerPlugin : Plugin<Project> {
         project.tasks.register("toGDrive", Copy::class.java) {
             it.dependsOn("build")
 
-            it.from("${project.buildDir}/libs")
-            it.into(gdrive.fullPath.get())
+            if (gdrive.type.get() == Type.LIBRARY) {
+                it.from("${project.buildDir}/libs")
+                it.into(gdrive.fullJarPath.get())
+            } else {
+                it.dependsOn("copyLib")
+                it.from("${project.buildDir}/launch4j")
+                it.into(gdrive.fullAppPath.get().resolve(project.name))
+            }
 
             it.group = "build"
             it.description = "Publish jar to Google Drive directory"
@@ -42,17 +48,40 @@ class OgerPlugin : Plugin<Project> {
         // repositories
         project.repositories.apply {
             flatDir {
-                it.dirs(gdrive.fullPath)
+                it.dirs(gdrive.fullJarPath)
             }
             mavenCentral()
         }
 
         project.extensions.findByName("javafx")?.let { ConfigureJfx.apply(project) }
+        project.extensions.findByName("launch4j")?.let { ConfigureL4j.apply(project) }
 
         // dependencies
         project.dependencies.apply {
             add("testImplementation", "org.spockframework:spock-core:2.1-groovy-3.0")
             add("testImplementation", "org.codehaus.groovy:groovy-all:3.0.11")
+        }
+
+        // without afterEvaluate, other plugins need to be defined BEFORE this plugin is defined
+        project.afterEvaluate {
+
+            project.plugins.findPlugin("org.openjfx.javafxplugin")?.let { ConfigureJfx.apply(project) }
+
+            if (project.plugins.findPlugin("edu.sc.seis.launch4j") != null) {
+                ConfigureL4j.apply(project)
+
+                project.tasks.register("copyLib", Copy::class.java) {
+                    it.dependsOn("createExe")
+
+                    it.from("${project.buildDir}/lib")
+                    it.into(gdrive.fullAppPath.get().resolve("lib"))
+
+                    it.group = "launch4j"
+                    it.description = "Copy build/lib into gDriveApps/lib"
+                }
+            } else if (gdrive.type.get() == Type.L4JAPPLICATION) {
+                throw IllegalArgumentException("you configured the type to L4JAPPLICATION, but the plugin 'edu.sc.seis.launch4j' is missing")
+            }
         }
     }
 }

@@ -47,10 +47,11 @@ val driveFolder = "${locate()}/$gDriveJars"
 
 dependencies {
     compileOnly("org.openjfx:javafx-plugin:0.0.13")
+    compileOnly("edu.sc.seis.launch4j:edu.sc.seis.launch4j.gradle.plugin:2.5.3")
 
     testImplementation("org.jetbrains.kotlin:kotlin-stdlib:1.7.10")
 
-    testImplementation("org.junit.jupiter:junit-jupiter-engine:5.9.0-M1")
+    testImplementation("org.junit.jupiter:junit-jupiter-engine:5.9.0")
     testImplementation("org.codehaus.groovy:groovy-all:3.0.9") {
         because("java-gradle-plugin requires 3.0.9")
     }
