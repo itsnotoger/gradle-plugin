@@ -10,6 +10,15 @@ object ConfigureL4j {
         launch4j.apply {
             downloadUrl = "https://adoptium.net/"
             libraryDir = "../lib"
+            jvmOptions.addAll(
+                listOf(
+                    "-Dfile.encoding=UTF-8",
+                )
+            )
+
+            project.plugins.findPlugin("org.openjfx.javafxplugin")?.let {
+                jvmOptions.addAll(ConfigureJfx.getJvmOptions(libraryDir))
+            }
         }
     }
 }

@@ -19,4 +19,11 @@ object ConfigureJfx {
             add("implementation", "org.openjfx:javafx-controls:$jfxVersion:win")
         }
     }
+
+    fun getJvmOptions(modulePath: String): List<String> {
+        return listOf(
+            "--module-path $modulePath",
+            "--add-modules=javafx.graphics,javafx.controls",
+        )
+    }
 }
