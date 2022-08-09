@@ -71,7 +71,7 @@ class OgerPlugin : Plugin<Project> {
                 ConfigureL4j.apply(project)
 
                 project.tasks.register("copyLib", Copy::class.java) {
-                    it.dependsOn("createExe")
+                    it.dependsOn("createAllExecutables")
 
                     it.from("${project.buildDir}/lib")
                     it.into(gdrive.fullAppPath.get().resolve("lib"))
