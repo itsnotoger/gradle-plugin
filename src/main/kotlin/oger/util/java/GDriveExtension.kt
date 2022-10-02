@@ -24,7 +24,8 @@ abstract class GDriveExtension {
         fullJarPath = driveFolder.zip(gDriveJars) { a: String, b: String -> Paths.get(a, b) }
 
         type.convention(Type.LIBRARY)
-        fullAppPath = driveFolder.zip(gDriveApps) { a: String, b: String -> Paths.get(a, b) }
+
+        fullAppPath = driveFolder.zip(gDriveApps.orElse("/gradle_apps")) { a: String, b: String -> Paths.get(a, b) }
     }
 }
 
