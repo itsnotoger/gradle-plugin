@@ -17,6 +17,8 @@ abstract class GDriveExtension {
     abstract val gDriveApps: Property<String>
     internal val fullAppPath: Provider<Path>
 
+    abstract val mainClass: Property<String>
+
     init {
         locate()?.let {
             driveFolder.convention(it.toString())
@@ -30,5 +32,5 @@ abstract class GDriveExtension {
 }
 
 enum class Type {
-    LIBRARY, L4JAPPLICATION
+    LIBRARY, L4JAPPLICATION, FATJARAPPLICATION
 }

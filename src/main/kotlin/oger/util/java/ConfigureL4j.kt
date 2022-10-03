@@ -15,6 +15,8 @@ object ConfigureL4j {
                     "-Dfile.encoding=UTF-8",
                 )
             )
+            val gdrive = project.extensions.getByType(GDriveExtension::class.java)
+            if (gdrive.mainClass.isPresent) mainClassName = gdrive.mainClass.get()
 
             project.plugins.findPlugin("org.openjfx.javafxplugin")?.let {
                 jvmOptions.addAll(ConfigureJfx.getJvmOptions(libraryDir))
