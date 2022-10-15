@@ -27,22 +27,7 @@ tasks {
     test {
         useJUnitPlatform()
     }
-
-    register<Copy>("toGDrive") {
-        dependsOn(build)
-
-        from("${project.buildDir}/libs")
-        into(driveFolder)
-
-        group = "build"
-        description = "Publish jar to Google Drive directory"
-    }
 }
-
-val gDriveJars: String by project
-apply("locate.gradle.kts")
-val locate: () -> File? by ext
-val driveFolder = "${locate()}/$gDriveJars"
 
 dependencies {
     compileOnly("org.openjfx:javafx-plugin:0.0.13")
@@ -60,7 +45,7 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>(project.name) {
+        create<MavenPublication>("plugin") {
             groupId = "$group"
             artifactId = githubProjectName
             version = "$version"
