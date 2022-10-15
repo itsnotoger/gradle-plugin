@@ -6,6 +6,7 @@ import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.plugins.GroovyPlugin
 import org.gradle.api.plugins.JavaLibraryPlugin
 import org.gradle.api.plugins.JavaPlugin
+import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.bundling.Jar
@@ -60,6 +61,7 @@ class OgerPlugin : Plugin<Project> {
         project.plugins.apply(JavaPlugin::class.java)
         project.plugins.apply(GroovyPlugin::class.java)
         project.plugins.apply(JavaLibraryPlugin::class.java)
+        project.plugins.apply(MavenPublishPlugin::class.java)
 
         //TODO check back later if there is a way to apply third party plugins from a plugin
 //        project.plugins.apply(JavaFXPlugin::class.java)

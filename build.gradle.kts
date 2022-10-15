@@ -2,6 +2,7 @@ plugins {
     groovy
     kotlin("jvm") version "1.7.10"
     `java-gradle-plugin`
+    `maven-publish`
 }
 
 gradlePlugin {
@@ -19,9 +20,6 @@ version = "0.0.1-SNAPSHOT"
 repositories {
     gradlePluginPortal()
     mavenCentral()
-//        flatDir {
-//        dirs(driveFolder)
-//    }
 }
 
 tasks {
@@ -59,13 +57,14 @@ dependencies {
     testImplementation("cglib:cglib-nodep:3.3.0")
 }
 
+publishing {
+    publications {
+        create<MavenPublication>(project.name) {
+            groupId = group.toString()
+            artifactId = project.name
+            version = version.toString()
 
-
-
-
-
-
-
-
-
-
+            from(components["java"])
+        }
+    }
+}
