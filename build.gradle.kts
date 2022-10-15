@@ -7,12 +7,12 @@ plugins {
 
 group = "com.github.itsnotoger"
 version = "0.0.1-SNAPSHOT"
-val name = "gradle-plugin" // github project name
+val githubProjectName = "gradle-plugin"
 
 gradlePlugin {
     plugins {
         register("OgerPlugin") {
-            id = "$group.$name"
+            id = "$group.$githubProjectName"
             implementationClass = "oger.util.java.OgerPlugin"
         }
     }
@@ -62,7 +62,7 @@ publishing {
     publications {
         create<MavenPublication>(project.name) {
             groupId = "$group"
-            artifactId = name
+            artifactId = githubProjectName
             version = "$version"
 
             from(components["java"])
