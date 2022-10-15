@@ -5,17 +5,17 @@ plugins {
     `maven-publish`
 }
 
+group = "com.github.itsnotoger"
+version = "0.0.1-SNAPSHOT"
+
 gradlePlugin {
     plugins {
         register("OgerPlugin") {
-            id = "oger.util.java"
+            id = "$group.oger.util.java"
             implementationClass = "oger.util.java.OgerPlugin"
         }
     }
 }
-
-group = "oger.util.java"
-version = "0.0.1-SNAPSHOT"
 
 repositories {
     gradlePluginPortal()
@@ -60,9 +60,9 @@ dependencies {
 publishing {
     publications {
         create<MavenPublication>(project.name) {
-            groupId = group.toString()
-            artifactId = project.name
-            version = version.toString()
+            groupId = "$group"
+            artifactId = "oger.util.java"
+            version = "$version"
 
             from(components["java"])
         }
