@@ -25,12 +25,17 @@ abstract class GDriveExtension {
         }
         fullJarPath = driveFolder.zip(gDriveJars) { a: String, b: String -> Paths.get(a, b) }
 
-        type.convention(Type.LIBRARY)
+        type.convention(Type.MAVENLIBRARY)
 
         fullAppPath = driveFolder.zip(gDriveApps.orElse("/gradle_apps")) { a: String, b: String -> Paths.get(a, b) }
     }
 }
 
 enum class Type {
-    LIBRARY, L4JAPPLICATION, FATJARAPPLICATION
+    @Deprecated("renamed", ReplaceWith("JARLIBRARY"), DeprecationLevel.WARNING)
+    LIBRARY,
+    JARLIBRARY,
+    MAVENLIBRARY,
+    L4JAPPLICATION,
+    FATJARAPPLICATION
 }

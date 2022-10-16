@@ -39,7 +39,7 @@ dependencies {
     testImplementation("org.codehaus.groovy:groovy-all:3.0.9") {
         because("java-gradle-plugin requires 3.0.9")
     }
-    testImplementation("org.spockframework:spock-core:2.1-groovy-3.0")
+    testImplementation("org.spockframework:spock-core:2.3-groovy-3.0")
     testImplementation("cglib:cglib-nodep:3.3.0")
 }
 

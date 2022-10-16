@@ -2,10 +2,13 @@ package oger.util.java
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.artifacts.repositories.MavenArtifactRepository
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.plugins.GroovyPlugin
 import org.gradle.api.plugins.JavaLibraryPlugin
 import org.gradle.api.plugins.JavaPlugin
+import org.gradle.api.publish.PublishingExtension
+import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.SourceSetContainer
@@ -16,10 +19,12 @@ import org.gradle.api.tasks.testing.Test
 class OgerPlugin : Plugin<Project> {
 
     private lateinit var gdrive: GDriveExtension
+    private var gdriveRepo: MavenArtifactRepository? = null
 
     override fun apply(project: Project) {
         applyPlugins(project)
         applyExtensions(project)
+        applyPublishing(project)
         applyTasks(project)
         applyRepositories(project)
         applyDependencies(project)
@@ -69,6 +74,17 @@ class OgerPlugin : Plugin<Project> {
 
     private fun applyExtensions(project: Project) {
         gdrive = project.extensions.create("gdrive", GDriveExtension::class.java)
+
+        if (gdrive.type.get() == Type.MAVENLIBRARY) {
+            if (gdrive.gDriveJars.isPresent) {
+                gdriveRepo = project.repositories.maven {
+                    it.url = project.uri(gdrive.fullJarPath)
+                    it.name = "GDrive"
+                }
+            } else {
+                println("WARNING: you set your type to mavenlibrary, but did not provide gDriveJars")
+            }
+        }
     }
 
     private fun applyTasks(project: Project) {
@@ -80,9 +96,14 @@ class OgerPlugin : Plugin<Project> {
                 it.dependsOn("build")
 
                 when (gdrive.type.get()) {
-                    Type.LIBRARY -> {
+                    Type.LIBRARY,
+                    Type.JARLIBRARY -> {
                         it.from("${project.buildDir}/libs")
                         it.into(gdrive.fullJarPath.get())
+                    }
+                    Type.MAVENLIBRARY -> {
+                        it.dependsOn("publishAllPublicationsToGDriveRepository")
+                        // no copy necessary, publication task handles delivery
                     }
                     Type.L4JAPPLICATION -> {
                         it.dependsOn("copyLib")
@@ -133,8 +154,27 @@ class OgerPlugin : Plugin<Project> {
 
     private fun applyDependencies(project: Project) {
         project.dependencies.apply {
-            add("testImplementation", "org.spockframework:spock-core:2.1-groovy-3.0")
+            add("testImplementation", "org.spockframework:spock-core:2.3-groovy-3.0")
             add("testImplementation", "org.codehaus.groovy:groovy-all:3.0.11")
+        }
+    }
+
+    private fun applyPublishing(project: Project) {
+        project.extensions.getByType(PublishingExtension::class.java).apply {
+            if (gdrive.type.get() == Type.MAVENLIBRARY) {
+                if (gdriveRepo == null) {
+                    println("WARNING: you set your type to mavenlibrary, but did not provide gDriveJars")
+                } else {
+                    repositories.add(gdriveRepo!!)
+                }
+                publications.create("auto", MavenPublication::class.java) {
+                    it.groupId = project.group.toString()
+                    it.artifactId = project.name
+                    it.version = project.version.toString()
+
+                    it.from(project.components.getByName("java"))
+                }
+            }
         }
     }
 }
