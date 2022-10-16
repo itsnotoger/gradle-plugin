@@ -7,6 +7,7 @@ import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.plugins.GroovyPlugin
 import org.gradle.api.plugins.JavaLibraryPlugin
 import org.gradle.api.plugins.JavaPlugin
+import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
@@ -39,17 +40,24 @@ class OgerPlugin : Plugin<Project> {
     }
 
     private fun applyPlugins(project: Project) {
-        project.plugins.apply(JavaPlugin::class.java)
-        project.plugins.apply(GroovyPlugin::class.java)
-        project.plugins.apply(JavaLibraryPlugin::class.java)
-        project.plugins.apply(MavenPublishPlugin::class.java)
+        project.plugins.apply {
+            apply(JavaPlugin::class.java)
+            apply(GroovyPlugin::class.java)
+            apply(JavaLibraryPlugin::class.java)
+            apply(MavenPublishPlugin::class.java)
 
-        //TODO check back later if there is a way to apply third party plugins from a plugin
-//        project.plugins.apply(JavaFXPlugin::class.java)
+//            apply(JavaFXPlugin::class.java)//TODO check back later if there is a way to apply third party plugins from a plugin
+        }
     }
 
     private fun applyExtensions(project: Project) {
-        gdrive = project.extensions.create("gdrive", GDriveExtension::class.java)
+        project.extensions.apply {
+            gdrive = create("gdrive", GDriveExtension::class.java)
+
+            val java = getByType(JavaPluginExtension::class.java)
+            java.withJavadocJar()
+            java.withSourcesJar()
+        }
     }
 
     private fun applyTasks(project: Project) {
@@ -117,6 +125,7 @@ class OgerPlugin : Plugin<Project> {
                 it.dirs(gdrive.fullJarPath)
             }
             mavenCentral()
+            // maven(GDrive) is configured in afterEvaluate
         }
     }
 
