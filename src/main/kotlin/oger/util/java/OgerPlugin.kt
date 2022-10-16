@@ -24,41 +24,17 @@ class OgerPlugin : Plugin<Project> {
     override fun apply(project: Project) {
         applyPlugins(project)
         applyExtensions(project)
-        applyPublishing(project)
         applyTasks(project)
         applyRepositories(project)
         applyDependencies(project)
+        // publishing is done in afterEvaluate, because GDriveExtension needs to be filled first
 
         project.extensions.findByName("javafx")?.let { ConfigureJfx.apply(project) }
         project.extensions.findByName("launch4j")?.let { ConfigureL4j.apply(project) }
 
         // without afterEvaluate, other plugins need to be defined BEFORE this plugin is defined
         project.afterEvaluate {
-            val type = gdrive.type.get()
-
-            project.plugins.findPlugin("org.openjfx.javafxplugin")?.let { ConfigureJfx.apply(project) }
-
-            if (project.plugins.findPlugin("edu.sc.seis.launch4j") != null) {
-                ConfigureL4j.apply(project)
-
-                project.tasks.register("copyLib", Copy::class.java) {
-                    it.group = "launch4j"
-                    it.description = "Copy build/lib into gDriveApps/lib"
-
-                    it.dependsOn("createAllExecutables")
-
-                    it.from("${project.buildDir}/lib")
-                    it.into(gdrive.fullAppPath.get().resolve("lib"))
-                }
-            } else if (type == Type.L4JAPPLICATION) {
-                throw IllegalArgumentException("you configured the type to L4JAPPLICATION, but the plugin 'edu.sc.seis.launch4j' is missing")
-            }
-
-            if (type == Type.L4JAPPLICATION || type == Type.FATJARAPPLICATION) {
-                if (!gdrive.mainClass.isPresent && (type == Type.FATJARAPPLICATION || project.tasks.getByName("createExe").enabled)) {
-                    println("WARNING: you set your type to application, but did not provide mainClass")
-                }
-            }
+            afterEvaluate(project)
         }
     }
 
@@ -74,17 +50,6 @@ class OgerPlugin : Plugin<Project> {
 
     private fun applyExtensions(project: Project) {
         gdrive = project.extensions.create("gdrive", GDriveExtension::class.java)
-
-        if (gdrive.type.get() == Type.MAVENLIBRARY) {
-            if (gdrive.gDriveJars.isPresent) {
-                gdriveRepo = project.repositories.maven {
-                    it.url = project.uri(gdrive.fullJarPath)
-                    it.name = "GDrive"
-                }
-            } else {
-                println("WARNING: you set your type to mavenlibrary, but did not provide gDriveJars")
-            }
-        }
     }
 
     private fun applyTasks(project: Project) {
@@ -102,8 +67,11 @@ class OgerPlugin : Plugin<Project> {
                         it.into(gdrive.fullJarPath.get())
                     }
                     Type.MAVENLIBRARY -> {
-                        it.dependsOn("publishAllPublicationsToGDriveRepository")
+                        it.dependsOn("publishAutoPublicationToGDriveRepository")
                         // no copy necessary, publication task handles delivery
+                        if (project.version.toString().endsWith("-SNAPSHOT")) {
+                            println("WARNING: toGDrive is used with a snapshot version, creating duplicates")
+                        }
                     }
                     Type.L4JAPPLICATION -> {
                         it.dependsOn("copyLib")
@@ -163,7 +131,7 @@ class OgerPlugin : Plugin<Project> {
         project.extensions.getByType(PublishingExtension::class.java).apply {
             if (gdrive.type.get() == Type.MAVENLIBRARY) {
                 if (gdriveRepo == null) {
-                    println("WARNING: you set your type to mavenlibrary, but did not provide gDriveJars")
+                    println("WARNING: you set your type to ${Type.MAVENLIBRARY}, but did not provide gDriveJars")
                 } else {
                     repositories.add(gdriveRepo!!)
                 }
@@ -174,6 +142,44 @@ class OgerPlugin : Plugin<Project> {
 
                     it.from(project.components.getByName("java"))
                 }
+            }
+        }
+    }
+
+    private fun afterEvaluate(project: Project) {
+        if (gdrive.gDriveJars.isPresent) {
+            gdriveRepo = project.repositories.maven {
+                it.url = project.uri(gdrive.fullJarPath)
+                it.name = "GDrive"
+            }
+        } else {
+            println("WARNING: gDriveJars is missing, and is thus unavailable as maven repository")
+        }
+        applyPublishing(project)
+
+        val type = gdrive.type.get()
+
+        project.plugins.findPlugin("org.openjfx.javafxplugin")?.let { ConfigureJfx.apply(project) }
+
+        if (project.plugins.findPlugin("edu.sc.seis.launch4j") != null) {
+            ConfigureL4j.apply(project)
+
+            project.tasks.register("copyLib", Copy::class.java) {
+                it.group = "launch4j"
+                it.description = "Copy build/lib into gDriveApps/lib"
+
+                it.dependsOn("createAllExecutables")
+
+                it.from("${project.buildDir}/lib")
+                it.into(gdrive.fullAppPath.get().resolve("lib"))
+            }
+        } else if (type == Type.L4JAPPLICATION) {
+            throw IllegalArgumentException("you configured the type to L4JAPPLICATION, but the plugin 'edu.sc.seis.launch4j' is missing")
+        }
+
+        if (type == Type.L4JAPPLICATION || type == Type.FATJARAPPLICATION) {
+            if (!gdrive.mainClass.isPresent && (type == Type.FATJARAPPLICATION || project.tasks.getByName("createExe").enabled)) {
+                println("WARNING: you set your type to application, but did not provide mainClass")
             }
         }
     }

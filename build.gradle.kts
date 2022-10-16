@@ -48,7 +48,7 @@ publishing {
         create<MavenPublication>("plugin") {
             groupId = "$group"
             artifactId = githubProjectName
-            version = "$version"
+            version = "${project.version}"
 
             from(components["java"])
         }
