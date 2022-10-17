@@ -21,7 +21,7 @@ import org.gradle.api.tasks.testing.Test
 class OgerPlugin : Plugin<Project> {
 
     private lateinit var gdrive: GDriveExtension
-    private var gdriveRepo: MavenArtifactRepository? = null
+    private lateinit var gdriveRepo: MavenArtifactRepository
 
     override fun apply(project: Project) {
         applyPlugins(project)
@@ -29,7 +29,7 @@ class OgerPlugin : Plugin<Project> {
         applyTasks(project)
         applyRepositories(project)
         applyDependencies(project)
-        // publishing is done in afterEvaluate, because GDriveExtension needs to be filled first
+        applyPublishing(project)
 
         project.extensions.findByName("javafx")?.let { ConfigureJfx.apply(project) }
         project.extensions.findByName("launch4j")?.let { ConfigureL4j.apply(project) }
@@ -127,8 +127,11 @@ class OgerPlugin : Plugin<Project> {
             flatDir {
                 it.dirs(gdrive.fullJarPath)
             }
+            gdriveRepo = project.repositories.maven {
+                it.setUrl(gdrive.fullJarUri)
+                it.name = "GDrive"
+            }
             mavenCentral()
-            // maven(GDrive) is configured in afterEvaluate
         }
     }
 
@@ -142,11 +145,7 @@ class OgerPlugin : Plugin<Project> {
     private fun applyPublishing(project: Project) {
         project.extensions.getByType(PublishingExtension::class.java).apply {
             if (gdrive.type.get() == Type.MAVENLIBRARY) {
-                if (gdriveRepo == null) {
-                    println("WARNING: you set your type to ${Type.MAVENLIBRARY}, but did not provide gDriveJars")
-                } else {
-                    repositories.add(gdriveRepo!!)
-                }
+                repositories.add(gdriveRepo)
                 publications.create("auto", MavenPublication::class.java) {
                     it.groupId = project.group.toString()
                     it.artifactId = project.name
@@ -159,16 +158,6 @@ class OgerPlugin : Plugin<Project> {
     }
 
     private fun afterEvaluate(project: Project) {
-        if (gdrive.gDriveJars.isPresent) {
-            gdriveRepo = project.repositories.maven {
-                it.url = project.uri(gdrive.fullJarPath)
-                it.name = "GDrive"
-            }
-        } else {
-            println("WARNING: gDriveJars is missing, and is thus unavailable as maven repository")
-        }
-        applyPublishing(project)
-
         val type = gdrive.type.get()
 
         project.plugins.findPlugin("org.openjfx.javafxplugin")?.let { ConfigureJfx.apply(project) }

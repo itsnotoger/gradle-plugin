@@ -5,6 +5,7 @@ package oger.util.java
 import oger.util.java.GDriveLocator.locate
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
+import java.net.URI
 import java.nio.file.Path
 import java.nio.file.Paths
 
@@ -12,6 +13,7 @@ abstract class GDriveExtension {
     abstract val driveFolder: Property<String>
     abstract val gDriveJars: Property<String>
     internal val fullJarPath: Provider<Path>
+    internal val fullJarUri: Provider<URI>
 
     abstract val type: Property<Type>
     abstract val gDriveApps: Property<String>
@@ -24,6 +26,7 @@ abstract class GDriveExtension {
             driveFolder.convention(it.toString())
         }
         fullJarPath = driveFolder.zip(gDriveJars) { a: String, b: String -> Paths.get(a, b) }
+        fullJarUri = fullJarPath.map { it.toUri() }
 
         type.convention(Type.MAVENLIBRARY)
 
