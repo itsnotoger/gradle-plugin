@@ -54,23 +54,28 @@ class OgerPlugin : Plugin<Project> {
     private fun applyExtensions(project: Project) {
         project.extensions.apply {
             gdrive = create("gdrive", GDriveExtension::class.java)
-
-            val java = getByType(JavaPluginExtension::class.java)
-            java.withJavadocJar()
-            java.withSourcesJar()
         }
     }
 
     private fun applyExtensionsAfter(project: Project) {
-        project.extensions.getByType(PublishingExtension::class.java).apply {
-            if (gdrive.type.get() == Type.MAVENLIBRARY) {
-                publications.create("auto", MavenPublication::class.java) {
+        project.extensions.apply {
+            val type = gdrive.type.get()
+
+            if (type == Type.MAVENLIBRARY) {
+                val publishing = getByType(PublishingExtension::class.java)
+                publishing.publications.create("auto", MavenPublication::class.java) {
                     it.groupId = project.group.toString()
                     it.artifactId = project.name
                     it.version = project.version.toString()
 
                     it.from(project.components.getByName("java"))
                 }
+            }
+
+            if (type.isLibrary()) {
+                val java = getByType(JavaPluginExtension::class.java)
+                java.withJavadocJar()
+                java.withSourcesJar()
             }
         }
     }
@@ -190,7 +195,7 @@ class OgerPlugin : Plugin<Project> {
             throw IllegalArgumentException("you configured the type to L4JAPPLICATION, but the plugin 'edu.sc.seis.launch4j' is missing")
         }
 
-        if (type == Type.L4JAPPLICATION || type == Type.FATJARAPPLICATION) {
+        if (type.isApplication()) {
             if (!gdrive.mainClass.isPresent && (type == Type.FATJARAPPLICATION || project.tasks.findByName("createExe")?.enabled == true)) {
                 println("WARNING: you set your type to application, but did not provide mainClass")
             }

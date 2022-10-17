@@ -40,5 +40,15 @@ enum class Type {
     JARLIBRARY,
     MAVENLIBRARY,
     L4JAPPLICATION,
-    FATJARAPPLICATION
+    FATJARAPPLICATION;
+
+    fun isLibrary(): Boolean = when (this) {
+        LIBRARY,
+        JARLIBRARY,
+        MAVENLIBRARY -> true
+        L4JAPPLICATION,
+        FATJARAPPLICATION -> false
+    }
+
+    fun isApplication(): Boolean = !isLibrary()
 }
