@@ -15,6 +15,7 @@ import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.compile.JavaCompile
+import org.gradle.api.tasks.javadoc.Javadoc
 import org.gradle.api.tasks.testing.Test
 
 class OgerPlugin : Plugin<Project> {
@@ -110,12 +111,14 @@ class OgerPlugin : Plugin<Project> {
                 it.from(deps + main.output + main.resources)
             }
 
-            val javaCompile = getByName("compileJava") as JavaCompile
-            javaCompile.options.encoding = "UTF-8"
+            val compileJava = getByName("compileJava") as JavaCompile
+            compileJava.options.encoding = "UTF-8"
             val compileTestJava = getByName("compileTestJava") as JavaCompile
             compileTestJava.options.encoding = "UTF-8"
             val test = getByName("test") as Test
             test.useJUnitPlatform()
+            val javadoc = getByName("javadoc") as Javadoc
+            javadoc.options.encoding = "UTF-8"
         }
     }
 
