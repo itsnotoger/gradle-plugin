@@ -96,6 +96,16 @@ class OgerPlugin : Plugin<Project> {
                 }
             }
 
+            register("copyLib", Copy::class.java) {
+                it.group = "other"
+                it.description = "Copy build/lib into gDriveApps/lib"
+
+                it.dependsOn("createAllExecutables")
+
+                it.from("${project.buildDir}/lib")
+                it.into(gdrive.fullAppPath.map { p -> p.resolve("lib") })
+            }
+
             register("fatJar", Jar::class.java) {
                 it.group = "build"
                 it.description = "creates a jar containing main classes, plus main resources, plus dependencies"
@@ -161,20 +171,9 @@ class OgerPlugin : Plugin<Project> {
         val type = gdrive.type.get()
 
         project.plugins.findPlugin("org.openjfx.javafxplugin")?.let { ConfigureJfx.apply(project) }
+        project.plugins.findPlugin("edu.sc.seis.launch4j")?.let { ConfigureL4j.apply(project) }
 
-        if (project.plugins.findPlugin("edu.sc.seis.launch4j") != null) {
-            ConfigureL4j.apply(project)
-
-            project.tasks.register("copyLib", Copy::class.java) {
-                it.group = "launch4j"
-                it.description = "Copy build/lib into gDriveApps/lib"
-
-                it.dependsOn("createAllExecutables")
-
-                it.from("${project.buildDir}/lib")
-                it.into(gdrive.fullAppPath.get().resolve("lib"))
-            }
-        } else if (type == Type.L4JAPPLICATION) {
+        if (type == Type.L4JAPPLICATION && !ConfigureL4j.configured) {
             throw IllegalArgumentException("you configured the type to L4JAPPLICATION, but the plugin 'edu.sc.seis.launch4j' is missing")
         }
 
