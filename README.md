@@ -12,13 +12,11 @@ My basic setup is Spock (Groovy) for unit tests, and maven builds are published 
 ```kotlin
 // settings.gradle.kts
 pluginManagement {
-    resolutionStrategy {
-        eachPlugin {
-            requested.apply {
-                if ("$id".startsWith("com.github.")) {
-                    val (_, _, user, name) = "$id".split(".", limit = 4)
-                    useModule("com.github.$user:$name:$version")
-                }
+    resolutionStrategy.eachPlugin {
+        requested.apply {
+            if ("$id".startsWith("com.github.")) {
+                val (_, _, user, name) = "$id".split(".", limit = 4)
+                useModule("com.github.$user:$name:$version")
             }
         }
     }
@@ -33,6 +31,6 @@ pluginManagement {
 ```kotlin
 // build.gradle.kts
 plugins {
-    id("com.github.itsnotoger.gradle-plugin") version "278e62eaa8" // git commit id, or tag
+    id("com.github.itsnotoger.gradle-plugin") version "a495bf4e7d" // git commit id, or tag
 }
 ```
