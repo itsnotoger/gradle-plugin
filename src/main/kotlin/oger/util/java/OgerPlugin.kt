@@ -85,12 +85,12 @@ class OgerPlugin : Plugin<Project> {
                     Type.L4JAPPLICATION -> {
                         it.dependsOn("copyLib")
                         it.from("${project.buildDir}/launch4j")
-                        it.into(gdrive.fullAppPath.get().resolve(project.name))
+                        it.into(gdrive.fullAppPath.map { p -> p.resolve(project.name) })
                     }
                     Type.FATJARAPPLICATION -> {
                         it.dependsOn("fatJar")
                         it.from("${project.buildDir}/libs")
-                        it.into(gdrive.fullAppPath.get().resolve(project.name))
+                        it.into(gdrive.fullAppPath.map { p -> p.resolve(project.name) })
                     }
                     else -> throw IllegalArgumentException(gdrive.type.get().toString())
                 }
@@ -137,9 +137,13 @@ class OgerPlugin : Plugin<Project> {
             flatDir {
                 it.dirs(gdrive.fullJarPath)
             }
-            gdriveRepo = project.repositories.maven {
+            gdriveRepo = maven {
                 it.setUrl(gdrive.fullJarUri)
                 it.name = "GDrive"
+            }
+            maven {
+                it.setUrl("https://jitpack.io")
+                it.name = "JitPack"
             }
             mavenCentral()
         }
@@ -178,7 +182,7 @@ class OgerPlugin : Plugin<Project> {
         }
 
         if (type == Type.L4JAPPLICATION || type == Type.FATJARAPPLICATION) {
-            if (!gdrive.mainClass.isPresent && (type == Type.FATJARAPPLICATION || project.tasks.getByName("createExe").enabled)) {
+            if (!gdrive.mainClass.isPresent && (type == Type.FATJARAPPLICATION || project.tasks.findByName("createExe")?.enabled == true)) {
                 println("WARNING: you set your type to application, but did not provide mainClass")
             }
         }
