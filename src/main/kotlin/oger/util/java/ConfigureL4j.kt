@@ -11,15 +11,15 @@ object ConfigureL4j {
         configured = true
         val launch4j = project.extensions.getByType(Launch4jPluginExtension::class.java)
         launch4j.apply {
-            downloadUrl = "https://adoptium.net/"
-            libraryDir = "../lib"
+            downloadUrl.set("https://adoptium.net/")
+            libraryDir.set("../lib")
             jvmOptions.addAll(
                 listOf(
                     "-Dfile.encoding=UTF-8",
                 )
             )
             val gdrive = project.extensions.getByType(GDriveExtension::class.java)
-            if (gdrive.mainClass.isPresent) mainClassName = gdrive.mainClass.get()
+            if (gdrive.mainClass.isPresent) mainClassName.set(gdrive.mainClass.get())
 
             project.plugins.findPlugin("org.openjfx.javafxplugin")?.let {
                 jvmOptions.addAll(ConfigureJfx.getJvmOptions(libraryDir))

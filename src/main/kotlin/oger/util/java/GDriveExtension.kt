@@ -42,6 +42,7 @@ enum class Type {
     L4JAPPLICATION,
     FATJARAPPLICATION;
 
+    @Suppress("DEPRECATION") // we want to support deprecated fields
     fun isLibrary(): Boolean = when (this) {
         LIBRARY,
         JARLIBRARY,
