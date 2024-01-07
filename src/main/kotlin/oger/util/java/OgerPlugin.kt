@@ -17,6 +17,7 @@ import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.api.tasks.javadoc.Javadoc
 import org.gradle.api.tasks.testing.Test
+import org.gradle.jvm.toolchain.JavaLanguageVersion
 
 class OgerPlugin : Plugin<Project> {
 
@@ -54,6 +55,8 @@ class OgerPlugin : Plugin<Project> {
     private fun applyExtensions(project: Project) {
         project.extensions.apply {
             gdrive = create("gdrive", GDriveExtension::class.java)
+            val java = getByType(JavaPluginExtension::class.java)
+            java.toolchain.languageVersion.set(JavaLanguageVersion.of(21))
         }
     }
 
