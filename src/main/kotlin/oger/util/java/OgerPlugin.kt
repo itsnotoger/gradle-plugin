@@ -95,7 +95,7 @@ class OgerPlugin : Plugin<Project> {
                 when (gdrive.type.get()) {
                     Type.LIBRARY,
                     Type.JARLIBRARY -> {
-                        it.from("${project.layout.buildDirectory}/libs")
+                        it.from(project.layout.buildDirectory.dir("libs"))
                         it.into(gdrive.fullJarPath.get())
                     }
                     Type.MAVENLIBRARY -> {
@@ -107,12 +107,12 @@ class OgerPlugin : Plugin<Project> {
                     }
                     Type.L4JAPPLICATION -> {
                         it.dependsOn("copyLib")
-                        it.from("${project.layout.buildDirectory}/launch4j")
+                        it.from(project.layout.buildDirectory.dir("launch4j"))
                         it.into(gdrive.fullAppPath.map { p -> p.resolve(project.name) })
                     }
                     Type.FATJARAPPLICATION -> {
                         it.dependsOn("fatJar")
-                        it.from("${project.layout.buildDirectory}/libs")
+                        it.from(project.layout.buildDirectory.dir("libs"))
                         it.into(gdrive.fullAppPath.map { p -> p.resolve(project.name) })
                     }
                     else -> throw IllegalArgumentException(gdrive.type.get().toString())
@@ -125,7 +125,7 @@ class OgerPlugin : Plugin<Project> {
 
                 it.dependsOn("createAllExecutables")
 
-                it.from("${project.layout.buildDirectory}/lib")
+                it.from(project.layout.buildDirectory.dir("lib"))
                 it.into(gdrive.fullAppPath.map { p -> p.resolve("lib") })
             }
 
