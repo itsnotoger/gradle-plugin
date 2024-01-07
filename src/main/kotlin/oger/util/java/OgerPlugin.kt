@@ -175,7 +175,7 @@ class OgerPlugin : Plugin<Project> {
     private fun applyDependencies(project: Project) {
         project.dependencies.apply {
             add("testImplementation", "org.spockframework:spock-core:2.3-groovy-3.0")
-            add("testImplementation", "org.codehaus.groovy:groovy-all:3.0.11")
+            add("testImplementation", "org.codehaus.groovy:groovy-all:3.0.17")
         }
     }
 
