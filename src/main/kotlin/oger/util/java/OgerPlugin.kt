@@ -93,6 +93,9 @@ class OgerPlugin : Plugin<Project> {
 
                 @Suppress("DEPRECATION") // we want to support deprecated fields
                 when (gdrive.type.get()) {
+                    Type.INLINELIBRARY -> {
+                        it.enabled = false
+                    }
                     Type.LIBRARY,
                     Type.JARLIBRARY -> {
                         it.from(project.layout.buildDirectory.dir("libs"))
@@ -115,7 +118,7 @@ class OgerPlugin : Plugin<Project> {
                         it.from(project.layout.buildDirectory.dir("libs"))
                         it.into(gdrive.fullAppPath.map { p -> p.resolve(project.name) })
                     }
-                    else -> throw IllegalArgumentException(gdrive.type.get().toString())
+                    null -> throw IllegalArgumentException("gdrive.type must not be null")
                 }
             }
 

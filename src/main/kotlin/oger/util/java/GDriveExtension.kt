@@ -37,13 +37,25 @@ abstract class GDriveExtension {
 enum class Type {
     @Deprecated("renamed", ReplaceWith("JARLIBRARY"), DeprecationLevel.WARNING)
     LIBRARY,
+
+    /** Library that does not get directly published. Rather, it is included in another publication, usually a sibling project. */
+    INLINELIBRARY,
+
+    /** Library that gets published as a plain jar */
     JARLIBRARY,
+
+    /** Library that gets published as a full-fledged maven library */
     MAVENLIBRARY,
+
+    /** Application that gets published as a Windows .exe */
     L4JAPPLICATION,
+
+    /** Application that gets published as a runnable fatjar */
     FATJARAPPLICATION;
 
     @Suppress("DEPRECATION") // we want to support deprecated fields
     fun isLibrary(): Boolean = when (this) {
+        INLINELIBRARY,
         LIBRARY,
         JARLIBRARY,
         MAVENLIBRARY -> true
