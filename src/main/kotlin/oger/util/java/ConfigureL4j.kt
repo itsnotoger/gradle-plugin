@@ -16,6 +16,7 @@ object ConfigureL4j {
             jvmOptions.addAll(
                 listOf(
                     "-Dfile.encoding=UTF-8",
+                    "-DOLDPWD=%OLDPWD%"
                 )
             )
             val gdrive = project.extensions.getByType(GDriveExtension::class.java)

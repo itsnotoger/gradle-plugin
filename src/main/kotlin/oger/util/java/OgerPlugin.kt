@@ -66,7 +66,7 @@ class OgerPlugin : Plugin<Project> {
 
             if (type == Type.MAVENLIBRARY) {
                 val publishing = getByType(PublishingExtension::class.java)
-                publishing.publications.create("auto", MavenPublication::class.java) {
+                publishing.publications.register("auto", MavenPublication::class.java) {
                     it.groupId = project.group.toString()
                     it.artifactId = project.name
                     it.version = project.version.toString()
