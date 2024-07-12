@@ -14,10 +14,8 @@ object ConfigureL4j {
             downloadUrl.set("https://adoptium.net/")
             libraryDir.set("../lib")
             jvmOptions.addAll(
-                listOf(
-                    "-Dfile.encoding=UTF-8",
-                    """-Dold.user.dir="%OLDPWD%""""
-                )
+                "-Dfile.encoding=UTF-8",
+                """-Dold.user.dir="%OLDPWD%""""
             )
             val gdrive = project.extensions.getByType(GDriveExtension::class.java)
             if (gdrive.mainClass.isPresent) mainClassName.set(gdrive.mainClass.get())

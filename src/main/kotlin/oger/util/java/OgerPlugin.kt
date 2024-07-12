@@ -96,11 +96,13 @@ class OgerPlugin : Plugin<Project> {
                     Type.INLINELIBRARY -> {
                         it.enabled = false
                     }
+
                     Type.LIBRARY,
                     Type.JARLIBRARY -> {
                         it.from(project.layout.buildDirectory.dir("libs"))
                         it.into(gdrive.fullJarPath.get())
                     }
+
                     Type.MAVENLIBRARY -> {
                         it.dependsOn("publishAutoPublicationToGDriveRepository")
                         // no copy necessary, publication task handles delivery
@@ -108,16 +110,19 @@ class OgerPlugin : Plugin<Project> {
                             println("WARNING: toGDrive is used with a snapshot version, creating duplicates")
                         }
                     }
+
                     Type.L4JAPPLICATION -> {
                         it.dependsOn("copyLib")
                         it.from(project.layout.buildDirectory.dir("launch4j"))
                         it.into(gdrive.fullAppPath.map { p -> p.resolve(project.name) })
                     }
+
                     Type.FATJARAPPLICATION -> {
                         it.dependsOn("fatJar")
                         it.from(project.layout.buildDirectory.dir("libs"))
                         it.into(gdrive.fullAppPath.map { p -> p.resolve(project.name) })
                     }
+
                     null -> throw IllegalArgumentException("gdrive.type must not be null")
                 }
             }
@@ -143,16 +148,21 @@ class OgerPlugin : Plugin<Project> {
 
                 val main = project.extensions.getByType(SourceSetContainer::class.java).getByName("main")
                 val deps =
-                    project.configurations.getByName("runtimeClasspath").map { cpe -> if (cpe.isDirectory) cpe else project.zipTree(cpe) }
+                    project.configurations.getByName("runtimeClasspath")
+                        .map { cpe -> if (cpe.isDirectory) cpe else project.zipTree(cpe) }
                 it.from(deps + main.output + main.resources)
             }
 
             val compileJava = getByName("compileJava") as JavaCompile
             compileJava.options.encoding = "UTF-8"
+
             val compileTestJava = getByName("compileTestJava") as JavaCompile
             compileTestJava.options.encoding = "UTF-8"
+
             val test = getByName("test") as Test
             test.useJUnitPlatform()
+            test.jvmArgs("--add-exports", "org.junit.jupiter.engine/org.junit.jupiter.engine.execution=ALL-UNNAMED")
+
             val javadoc = getByName("javadoc") as Javadoc
             javadoc.options.encoding = "UTF-8"
         }
@@ -177,8 +187,9 @@ class OgerPlugin : Plugin<Project> {
 
     private fun applyDependencies(project: Project) {
         project.dependencies.apply {
-            add("testImplementation", "org.spockframework:spock-core:2.3-groovy-3.0")
-            add("testImplementation", "org.codehaus.groovy:groovy-all:3.0.17")
+            val groovyMajor = 3
+            add("testImplementation", "org.codehaus.groovy:groovy-all:${groovyMajor}.0.21")
+            add("testImplementation", "org.spockframework:spock-core:2.3-groovy-${groovyMajor}.0")
         }
     }
 
