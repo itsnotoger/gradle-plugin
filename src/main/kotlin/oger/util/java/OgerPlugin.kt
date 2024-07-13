@@ -3,6 +3,7 @@ package oger.util.java
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository
+import org.gradle.api.attributes.Attribute
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.plugins.GroovyPlugin
 import org.gradle.api.plugins.JavaLibraryPlugin
@@ -161,7 +162,6 @@ class OgerPlugin : Plugin<Project> {
 
             val test = getByName("test") as Test
             test.useJUnitPlatform()
-            test.jvmArgs("--add-exports", "org.junit.jupiter.engine/org.junit.jupiter.engine.execution=ALL-UNNAMED")
 
             val javadoc = getByName("javadoc") as Javadoc
             javadoc.options.encoding = "UTF-8"
@@ -201,6 +201,15 @@ class OgerPlugin : Plugin<Project> {
         }
     }
 
+    private fun applyConfigurationsAfter(project: Project) {
+        project.configurations.apply {
+            // disable module path for test
+            listOf(getByName("testCompileClasspath"), getByName("testRuntimeClasspath")).forEach {
+                it.attributes.attribute(Attribute.of("javaModule", Boolean::class.javaObjectType), false)
+            }
+        }
+    }
+
     private fun afterEvaluate(project: Project) {
         val type = gdrive.type.get()
 
@@ -208,9 +217,10 @@ class OgerPlugin : Plugin<Project> {
         project.plugins.findPlugin("edu.sc.seis.launch4j")?.let { ConfigureL4j.apply(project) }
 
         applyExtensionsAfter(project)
+        applyConfigurationsAfter(project)
 
         if (type == Type.L4JAPPLICATION && !ConfigureL4j.configured) {
-            throw IllegalArgumentException("you configured the type to L4JAPPLICATION, but the plugin 'edu.sc.seis.launch4j' is missing")
+            throw IllegalArgumentException("you configured the type to ${Type.L4JAPPLICATION.name}, but the plugin 'edu.sc.seis.launch4j' is missing")
         }
 
         if (type.isApplication()) {
