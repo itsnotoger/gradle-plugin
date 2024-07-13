@@ -1,6 +1,8 @@
 package oger.util.java.plugins
 
 import org.gradle.api.Project
+import org.gradle.api.attributes.Attribute
+import org.gradle.api.plugins.JavaPlugin
 import org.gradlex.javamodule.moduleinfo.ExtraJavaModuleInfoPluginExtension
 
 object ConfigureExtraJavaModule {
@@ -44,6 +46,16 @@ object ConfigureExtraJavaModule {
                 it.exports("org.bridj.cpp.com")
                 it.exports("org.bridj.cpp.com.shell")
                 it.requires("com.android.dx")
+            }
+        }
+    }
+
+    fun disableTestClasspath(project: Project) {
+        project.plugins.withType(JavaPlugin::class.java) {
+            listOf("testCompileClasspath", "testRuntimeClasspath").forEach { configName ->
+                project.configurations.named(configName).configure {
+                    it.attributes.attribute(Attribute.of("javaModule", Boolean::class.javaObjectType), false)
+                }
             }
         }
     }

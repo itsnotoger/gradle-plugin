@@ -6,7 +6,6 @@ import oger.util.java.plugins.ConfigureL4j
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository
-import org.gradle.api.attributes.Attribute
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.plugins.GroovyPlugin
 import org.gradle.api.plugins.JavaLibraryPlugin
@@ -38,6 +37,8 @@ class OgerPlugin : Plugin<Project> {
 
         project.extensions.findByName("javafx")?.let { ConfigureJfx.apply(project) }
         project.extensions.findByName("launch4j")?.let { ConfigureL4j.apply(project) }
+
+        ConfigureExtraJavaModule.disableTestClasspath(project)
 
         // without afterEvaluate, other plugins need to be defined BEFORE this plugin is defined
         project.afterEvaluate {
@@ -204,15 +205,6 @@ class OgerPlugin : Plugin<Project> {
         }
     }
 
-    private fun applyConfigurationsAfter(project: Project) {
-        project.configurations.apply {
-            // disable module path for test
-            listOf(getByName("testCompileClasspath"), getByName("testRuntimeClasspath")).forEach {
-                it.attributes.attribute(Attribute.of("javaModule", Boolean::class.javaObjectType), false)
-            }
-        }
-    }
-
     private fun afterEvaluate(project: Project) {
         val type = gdrive.type.get()
 
@@ -222,7 +214,6 @@ class OgerPlugin : Plugin<Project> {
             ?.let { ConfigureExtraJavaModule.apply(project) }
 
         applyExtensionsAfter(project)
-        applyConfigurationsAfter(project)
 
         if (type == Type.L4JAPPLICATION && !ConfigureL4j.configured) {
             throw IllegalArgumentException("you configured the type to ${Type.L4JAPPLICATION.name}, but the plugin 'edu.sc.seis.launch4j' is missing")
