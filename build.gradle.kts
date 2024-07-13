@@ -38,6 +38,7 @@ tasks {
 dependencies {
     compileOnly("org.openjfx:javafx-plugin:0.1.0")
     compileOnly("edu.sc.seis.launch4j:edu.sc.seis.launch4j.gradle.plugin:3.0.5")
+    compileOnly("org.gradlex:extra-java-module-info:1.8")
 
     testImplementation("org.jetbrains.kotlin:kotlin-stdlib:1.9.20")
 

@@ -1,5 +1,8 @@
 package oger.util.java
 
+import oger.util.java.plugins.ConfigureExtraJavaModule
+import oger.util.java.plugins.ConfigureJfx
+import oger.util.java.plugins.ConfigureL4j
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository
@@ -215,6 +218,8 @@ class OgerPlugin : Plugin<Project> {
 
         project.plugins.findPlugin("org.openjfx.javafxplugin")?.let { ConfigureJfx.apply(project) }
         project.plugins.findPlugin("edu.sc.seis.launch4j")?.let { ConfigureL4j.apply(project) }
+        project.plugins.findPlugin("org.gradlex.extra-java-module-info")
+            ?.let { ConfigureExtraJavaModule.apply(project) }
 
         applyExtensionsAfter(project)
         applyConfigurationsAfter(project)

@@ -1,6 +1,7 @@
-package oger.util.java
+package oger.util.java.plugins
 
 import edu.sc.seis.launch4j.Launch4jPluginExtension
+import oger.util.java.GDriveExtension
 import org.gradle.api.Project
 
 object ConfigureL4j {
