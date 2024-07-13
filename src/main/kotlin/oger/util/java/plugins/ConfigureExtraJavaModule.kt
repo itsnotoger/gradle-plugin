@@ -47,6 +47,13 @@ object ConfigureExtraJavaModule {
                 it.exports("org.bridj.cpp.com.shell")
                 it.requires("com.android.dx")
             }
+
+            module("org.eclipse.fx:org.eclipse.fx.drift", "org.eclipse.fx.drift") {
+                it.exports("org.eclipse.fx.drift")
+                it.exports("org.eclipse.fx.drift.impl")
+                it.exports("org.eclipse.fx.drift.util")
+                it.requires("javafx.graphics")
+            }
         }
     }
 
