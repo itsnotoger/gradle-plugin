@@ -60,6 +60,7 @@ class OgerPlugin : Plugin<Project> {
     private fun applyExtensions(project: Project) {
         project.extensions.apply {
             gdrive = create("gdrive", GDriveExtension::class.java)
+
             val java = getByType(JavaPluginExtension::class.java)
             java.toolchain.languageVersion.set(JavaLanguageVersion.of(21))
         }
