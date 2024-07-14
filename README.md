@@ -48,6 +48,6 @@ pluginManagement {
 ```kotlin
 // build.gradle.kts
 plugins {
-    id("com.github.itsnotoger.gradle-plugin") version "a495bf4e7d" // git commit id, or tag
+    id("com.github.itsnotoger.gradle-plugin") version "XXX" // see jitpack badge at the top of readme for latest version
 }
 ```
