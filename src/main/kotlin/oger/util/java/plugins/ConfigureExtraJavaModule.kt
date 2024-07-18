@@ -109,6 +109,16 @@ object ConfigureExtraJavaModule {
                 it.exports("okio")
             }
             knownModule("org.jetbrains.kotlin:kotlin-stdlib", "kotlin.stdlib")
+
+            module("com.google.guava:listenablefuture", "guava.listenablefuture")
+            module("com.google.code.findbugs:jsr305", "javax.annotation") {
+                it.exports("javax.annotation")
+                it.exports("javax.annotation.concurrent")
+                it.exports("javax.annotation.meta")
+            }
+            module("com.google.guava:failureaccess", "com.google.common.util.concurrent.internal") {
+                it.exports("com.google.common.util.concurrent.internal")
+            }
         }
     }
 
