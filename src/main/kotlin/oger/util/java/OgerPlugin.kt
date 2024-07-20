@@ -3,9 +3,15 @@ package oger.util.java
 import oger.util.java.plugins.ConfigureExtraJavaModule
 import oger.util.java.plugins.ConfigureJfx
 import oger.util.java.plugins.ConfigureL4j
+import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository
+import org.gradle.api.attributes.Attribute
+import org.gradle.api.attributes.Bundling
+import org.gradle.api.attributes.LibraryElements
+import org.gradle.api.attributes.Usage
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.plugins.GroovyPlugin
 import org.gradle.api.plugins.JavaLibraryPlugin
@@ -26,9 +32,11 @@ class OgerPlugin : Plugin<Project> {
 
     private lateinit var gdrive: GDriveExtension
     private lateinit var gdriveRepo: MavenArtifactRepository
+    private lateinit var fatJarRuntimeClasspath: NamedDomainObjectProvider<Configuration>
 
     override fun apply(project: Project) {
         applyPlugins(project)
+        applyConfigurations(project)
         applyExtensions(project)
         applyTasks(project)
         applyRepositories(project)
@@ -54,6 +62,26 @@ class OgerPlugin : Plugin<Project> {
             apply(MavenPublishPlugin::class.java)
 
 //            apply(JavaFXPlugin::class.java)//TODO check back later if there is a way to apply third party plugins from a plugin
+        }
+    }
+
+    private fun applyConfigurations(project: Project) {
+        project.configurations.apply {
+            val objects = project.objects
+
+            fatJarRuntimeClasspath = register("fatJarRuntimeClasspath") {
+                it.extendsFrom(named("runtimeClasspath").get())
+                it.attributes { a ->
+                    a.attribute(Attribute.of("javaModule", Boolean::class.javaObjectType), false)
+                    a.attribute(
+                        LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE,
+                        objects.named(LibraryElements::class.java, LibraryElements.JAR)
+                    )
+                    a.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage::class.java, Usage.JAVA_RUNTIME))
+                    a.attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling::class.java, Bundling.EXTERNAL))
+                }
+                it.isCanBeConsumed = false
+            }
         }
     }
 
@@ -147,16 +175,19 @@ class OgerPlugin : Plugin<Project> {
                 it.group = "build"
                 it.description = "creates a jar containing main classes, plus main resources, plus dependencies"
 
-                it.dependsOn("build")
+                // dependsOn build is not needed?
 
                 it.manifest { m -> m.attributes(mapOf("Main-Class" to gdrive.mainClass)) }
                 it.duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 
                 val main = project.extensions.getByType(SourceSetContainer::class.java).getByName("main")
-                val deps =
-                    project.configurations.getByName("runtimeClasspath")
-                        .map { cpe -> if (cpe.isDirectory) cpe else project.zipTree(cpe) }
-                it.from(deps + main.output + main.resources)
+
+                it.from(main.output + main.resources)
+                it.from({
+                    fatJarRuntimeClasspath.get().map { cp -> if (cp.isDirectory) cp else project.zipTree(cp) }
+                })
+
+                it.exclude("module-info.class")
             }
 
             val compileJava = getByName("compileJava") as JavaCompile
