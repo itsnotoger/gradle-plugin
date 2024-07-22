@@ -42,7 +42,6 @@ class OgerPlugin : Plugin<Project> {
         applyTasks(project)
         applyRepositories(project)
         applyDependencies(project)
-        applyPublishing(project)
 
         project.extensions.findByName("javafx")?.let { ConfigureJfx.apply(project) }
         project.extensions.findByName("launch4j")?.let { ConfigureL4j.apply(project) }
@@ -55,33 +54,30 @@ class OgerPlugin : Plugin<Project> {
         }
     }
 
-    private fun applyPlugins(project: Project) {
-        project.plugins.apply {
-            apply(JavaPlugin::class.java)
-            apply(GroovyPlugin::class.java)
-            apply(JavaLibraryPlugin::class.java)
-            apply(MavenPublishPlugin::class.java)
-
-//            apply(JavaFXPlugin::class.java)//TODO check back later if there is a way to apply third party plugins from a plugin
-        }
+    private fun applyPlugins(project: Project) = project.plugins.apply {
+        apply(JavaPlugin::class.java)
+        apply(GroovyPlugin::class.java)
+        apply(JavaLibraryPlugin::class.java)
+        apply(MavenPublishPlugin::class.java)
+//        apply(JavaFXPlugin::class.java)//TODO check back later if there is a way to apply third party plugins from a plugin
     }
 
+    private fun applyExtensions(project: Project) = project.extensions.apply {
+        gdrive = create("gdrive", GDriveExtension::class.java)
 
-    private fun applyExtensions(project: Project) {
-        project.extensions.apply {
-            gdrive = create("gdrive", GDriveExtension::class.java)
+        val java = getByType(JavaPluginExtension::class.java)
+        java.toolchain.languageVersion.set(JavaLanguageVersion.of(21))
 
-            val java = getByType(JavaPluginExtension::class.java)
-            java.toolchain.languageVersion.set(JavaLanguageVersion.of(21))
-        }
-    }
+        val publishing = getByType(PublishingExtension::class.java)
 
-    private fun applyExtensionsAfter(project: Project) {
-        project.extensions.apply {
-            val type = gdrive.type.get()
+        gdrive.type.map { type ->
+            if (type.isLibrary()) {
+                java.withJavadocJar()
+                java.withSourcesJar()
+            }
 
             if (type == Type.MAVENLIBRARY) {
-                val publishing = getByType(PublishingExtension::class.java)
+                publishing.repositories.add(gdriveRepo)
                 publishing.publications.register("auto", MavenPublication::class.java) {
                     it.groupId = project.group.toString()
                     it.artifactId = project.name
@@ -90,25 +86,19 @@ class OgerPlugin : Plugin<Project> {
                     it.from(project.components.getByName("java"))
                 }
             }
-
-            if (type.isLibrary()) {
-                val java = getByType(JavaPluginExtension::class.java)
-                java.withJavadocJar()
-                java.withSourcesJar()
-            }
         }
     }
 
-    private fun applyTasks(project: Project) {
-        project.tasks.apply {
-            register("toGDrive", Copy::class.java) {
-                it.group = "build"
-                it.description = "Publish jar to Google Drive directory"
+    private fun applyTasks(project: Project) = project.tasks.apply {
+        register("toGDrive", Copy::class.java) {
+            it.group = "build"
+            it.description = "Publish jar to Google Drive directory"
 
-                it.dependsOn("build")
+            it.dependsOn("build")
 
-                @Suppress("DEPRECATION") // we want to support deprecated fields
-                when (gdrive.type.get()) {
+            @Suppress("DEPRECATION") // we want to support deprecated fields
+            gdrive.type.map { type ->
+                when (type) {
                     Type.INLINELIBRARY -> {
                         it.enabled = false
                     }
@@ -124,6 +114,7 @@ class OgerPlugin : Plugin<Project> {
                         // no copy necessary, publication task handles delivery
                         if (project.version.toString().endsWith("-SNAPSHOT")) {
                             println("WARNING: toGDrive is used with a snapshot version, creating duplicates")
+                        } else {
                         }
                     }
 
@@ -142,80 +133,68 @@ class OgerPlugin : Plugin<Project> {
                     null -> throw IllegalArgumentException("gdrive.type must not be null")
                 }
             }
-
-            register("copyLib", Copy::class.java) {
-                it.group = "other"
-                it.description = "Copy build/lib into gDriveApps/lib"
-
-                it.dependsOn("createAllExecutables")
-
-                it.from(project.layout.buildDirectory.dir("lib"))
-                it.into(gdrive.fullAppPath.map { p -> p.resolve("lib") })
-            }
-
-            register("fatJar", Jar::class.java) {
-                it.group = "build"
-                it.description = "creates a jar containing main classes, plus main resources, plus dependencies"
-
-                it.manifest { m -> m.attributes(mapOf("Main-Class" to gdrive.mainClass)) }
-                it.duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-
-                val main = project.extensions.getByType(SourceSetContainer::class.java).getByName("main")
-
-                it.from(main.output + main.resources)
-                it.from(project.configurations.getByName("runtimeClasspath").elements.map { fileSet ->
-                    fileSet.map { fileSystemLocation ->
-                        val file = fileSystemLocation.asFile
-                        if (file.isDirectory()) file else project.zipTree(file)
-                    }
-                })
-            }
-
-            val compileJava = getByName("compileJava") as JavaCompile
-            compileJava.options.encoding = "UTF-8"
-
-            val compileTestJava = getByName("compileTestJava") as JavaCompile
-            compileTestJava.options.encoding = "UTF-8"
-
-            val test = getByName("test") as Test
-            test.useJUnitPlatform()
-
-            val javadoc = getByName("javadoc") as Javadoc
-            javadoc.options.encoding = "UTF-8"
         }
+
+        register("copyLib", Copy::class.java) {
+            it.group = "other"
+            it.description = "Copy build/lib into gDriveApps/lib"
+
+            it.dependsOn("createAllExecutables")
+
+            it.from(project.layout.buildDirectory.dir("lib"))
+            it.into(gdrive.fullAppPath.map { p -> p.resolve("lib") })
+        }
+
+        register("fatJar", Jar::class.java) {
+            it.group = "build"
+            it.description = "creates a jar containing main classes, plus main resources, plus dependencies"
+
+            it.manifest { m -> m.attributes(mapOf("Main-Class" to gdrive.mainClass)) }
+            it.duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
+            val main = project.extensions.getByType(SourceSetContainer::class.java).getByName("main")
+
+            it.from(main.output + main.resources)
+            it.from(project.configurations.getByName("runtimeClasspath").elements.map { fileSet ->
+                fileSet.map { fileSystemLocation ->
+                    val file = fileSystemLocation.asFile
+                    if (file.isDirectory()) file else project.zipTree(file)
+                }
+            })
+        }
+
+        val compileJava = getByName("compileJava") as JavaCompile
+        compileJava.options.encoding = "UTF-8"
+
+        val compileTestJava = getByName("compileTestJava") as JavaCompile
+        compileTestJava.options.encoding = "UTF-8"
+
+        val test = getByName("test") as Test
+        test.useJUnitPlatform()
+
+        val javadoc = getByName("javadoc") as Javadoc
+        javadoc.options.encoding = "UTF-8"
     }
 
-    private fun applyRepositories(project: Project) {
-        project.repositories.apply {
-            flatDir {
-                it.dirs(gdrive.fullJarPath)
-            }
-            gdriveRepo = maven {
-                it.setUrl(gdrive.fullJarUri)
-                it.name = "GDrive"
-            }
-            maven {
-                it.setUrl("https://jitpack.io")
-                it.name = "JitPack"
-            }
-            mavenCentral()
+    private fun applyRepositories(project: Project) = project.repositories.apply {
+        flatDir {
+            it.dirs(gdrive.fullJarPath)
         }
+        gdriveRepo = maven {
+            it.setUrl(gdrive.fullJarUri)
+            it.name = "GDrive"
+        }
+        maven {
+            it.setUrl("https://jitpack.io")
+            it.name = "JitPack"
+        }
+        mavenCentral()
     }
 
-    private fun applyDependencies(project: Project) {
-        project.dependencies.apply {
-            val groovyMajor = 3
-            add("testImplementation", "org.codehaus.groovy:groovy-all:${groovyMajor}.0.21")
-            add("testImplementation", "org.spockframework:spock-core:2.3-groovy-${groovyMajor}.0")
-        }
-    }
-
-    private fun applyPublishing(project: Project) {
-        project.extensions.getByType(PublishingExtension::class.java).apply {
-            if (gdrive.type.get() == Type.MAVENLIBRARY) {
-                repositories.add(gdriveRepo)
-            }
-        }
+    private fun applyDependencies(project: Project) = project.dependencies.apply {
+        val groovyMajor = 3
+        add("testImplementation", "org.codehaus.groovy:groovy-all:${groovyMajor}.0.21")
+        add("testImplementation", "org.spockframework:spock-core:2.3-groovy-${groovyMajor}.0")
     }
 
     private fun afterEvaluate(project: Project) {
@@ -225,8 +204,6 @@ class OgerPlugin : Plugin<Project> {
         project.plugins.findPlugin("edu.sc.seis.launch4j")?.let { ConfigureL4j.apply(project) }
         project.plugins.findPlugin("org.gradlex.extra-java-module-info")
             ?.let { ConfigureExtraJavaModule.apply(project) }
-
-        applyExtensionsAfter(project)
 
         if (type == Type.L4JAPPLICATION && !ConfigureL4j.configured) {
             throw IllegalArgumentException("you configured the type to ${Type.L4JAPPLICATION.name}, but the plugin 'edu.sc.seis.launch4j' is missing")

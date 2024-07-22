@@ -33,6 +33,7 @@ tasks {
     test {
         useJUnitPlatform()
     }
+    getByName("publishToMavenLocal").dependsOn("check")
 }
 
 dependencies {
