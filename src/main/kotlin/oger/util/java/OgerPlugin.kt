@@ -30,13 +30,14 @@ import org.gradle.jvm.toolchain.JavaLanguageVersion
 
 class OgerPlugin : Plugin<Project> {
 
+    private lateinit var project: Project
     private lateinit var gdrive: GDriveExtension
     private lateinit var gdriveRepo: MavenArtifactRepository
-    private lateinit var fatJarRuntimeClasspath: NamedDomainObjectProvider<Configuration>
+    private val fatjarRuntimeClasspath: NamedDomainObjectProvider<Configuration> by lazy { createFatjarClasspath(project) }
 
     override fun apply(project: Project) {
+        this.project = project
         applyPlugins(project)
-        applyConfigurations(project)
         applyExtensions(project)
         applyTasks(project)
         applyRepositories(project)
@@ -65,25 +66,6 @@ class OgerPlugin : Plugin<Project> {
         }
     }
 
-    private fun applyConfigurations(project: Project) {
-        project.configurations.apply {
-            val objects = project.objects
-
-            fatJarRuntimeClasspath = register("fatJarRuntimeClasspath") {
-                it.extendsFrom(named("runtimeClasspath").get())
-                it.attributes { a ->
-                    a.attribute(Attribute.of("javaModule", Boolean::class.javaObjectType), false)
-                    a.attribute(
-                        LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE,
-                        objects.named(LibraryElements::class.java, LibraryElements.JAR)
-                    )
-                    a.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage::class.java, Usage.JAVA_RUNTIME))
-                    a.attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling::class.java, Bundling.EXTERNAL))
-                }
-                it.isCanBeConsumed = false
-            }
-        }
-    }
 
     private fun applyExtensions(project: Project) {
         project.extensions.apply {
@@ -175,19 +157,18 @@ class OgerPlugin : Plugin<Project> {
                 it.group = "build"
                 it.description = "creates a jar containing main classes, plus main resources, plus dependencies"
 
-                // dependsOn build is not needed?
-
                 it.manifest { m -> m.attributes(mapOf("Main-Class" to gdrive.mainClass)) }
                 it.duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 
                 val main = project.extensions.getByType(SourceSetContainer::class.java).getByName("main")
 
                 it.from(main.output + main.resources)
-                it.from({
-                    fatJarRuntimeClasspath.get().map { cp -> if (cp.isDirectory) cp else project.zipTree(cp) }
+                it.from(project.configurations.getByName("runtimeClasspath").elements.map { fileSet ->
+                    fileSet.map { fileSystemLocation ->
+                        val file = fileSystemLocation.asFile
+                        if (file.isDirectory()) file else project.zipTree(file)
+                    }
                 })
-
-                it.exclude("module-info.class")
             }
 
             val compileJava = getByName("compileJava") as JavaCompile
@@ -254,6 +235,26 @@ class OgerPlugin : Plugin<Project> {
         if (type.isApplication()) {
             if (!gdrive.mainClass.isPresent && (type == Type.FATJARAPPLICATION || project.tasks.findByName("createExe")?.enabled == true)) {
                 println("WARNING: you set your type to application, but did not provide mainClass")
+            }
+        }
+    }
+
+    companion object {
+        private fun createFatjarClasspath(project: Project): NamedDomainObjectProvider<Configuration> {
+            val objects = project.objects
+
+            return project.configurations.register("fatJarRuntimeClasspath") {
+                it.extendsFrom(project.configurations.named("runtimeClasspath").get())
+                it.attributes { a ->
+                    a.attribute(Attribute.of("javaModule", Boolean::class.javaObjectType), false)
+                    a.attribute(
+                        LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE,
+                        objects.named(LibraryElements::class.java, LibraryElements.JAR)
+                    )
+                    a.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage::class.java, Usage.JAVA_RUNTIME))
+                    a.attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling::class.java, Bundling.EXTERNAL))
+                }
+                it.isCanBeConsumed = false
             }
         }
     }
