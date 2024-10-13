@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "com.github.itsnotoger"
-version = "0.0.1-SNAPSHOT"
+version = "2.0.0-SNAPSHOT"
 val githubProjectName = "gradle-plugin"
 
 kotlin {
@@ -46,7 +46,7 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-engine:5.9.0")
 
     val groovyMajor = 3
-    testImplementation("org.codehaus.groovy:groovy-all:${groovyMajor}.0.21") {
+    testImplementation("org.codehaus.groovy:groovy-all:${groovyMajor}.0.22") {
         because("java-gradle-plugin requires 3.x")
     }
     testImplementation("org.spockframework:spock-core:2.3-groovy-${groovyMajor}.0")

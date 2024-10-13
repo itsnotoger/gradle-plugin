@@ -59,6 +59,7 @@ enum class Type {
         LIBRARY,
         JARLIBRARY,
         MAVENLIBRARY -> true
+
         L4JAPPLICATION,
         FATJARAPPLICATION -> false
     }

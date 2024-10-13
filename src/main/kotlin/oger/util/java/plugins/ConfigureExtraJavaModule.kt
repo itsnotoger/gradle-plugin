@@ -7,8 +7,6 @@ import org.gradlex.javamodule.moduleinfo.ExtraJavaModuleInfoPluginExtension
 
 object ConfigureExtraJavaModule {
 
-    var DEBUG = false
-
     fun apply(project: Project) {
         val extraJavaModuleInfo = project.extensions.getByType(ExtraJavaModuleInfoPluginExtension::class.java)
         extraJavaModuleInfo.apply {
@@ -125,13 +123,9 @@ object ConfigureExtraJavaModule {
     }
 
     fun disableTestClasspath(project: Project) {
-        if (DEBUG) println("configure test classpath for $project")
         project.plugins.withType(JavaPlugin::class.java) {
-            if (DEBUG) println("configure test classpath for java $project")
             listOf("testCompileClasspath", "testRuntimeClasspath").forEach { configName ->
-                if (DEBUG) println("configure $configName for java $project")
                 project.configurations.named(configName).configure {
-                    if (DEBUG) println("configure $configName for java $project attribute set")
                     it.attributes.attribute(Attribute.of("javaModule", Boolean::class.javaObjectType), false)
                 }
             }

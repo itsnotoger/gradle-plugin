@@ -36,7 +36,6 @@ class ToGDriveSpec extends Specification {
             id 'com.github.itsnotoger.gradle-plugin'
         }
         gdrive {
-            debug = true
             type = oger.util.java.Type.JARLIBRARY
             GDriveJars = "/syncme/gradle_jars"
             GDriveApps = "/gradle_apps"

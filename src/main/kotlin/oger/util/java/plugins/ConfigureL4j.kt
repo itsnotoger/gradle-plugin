@@ -19,7 +19,8 @@ object ConfigureL4j {
                 """-Dold.user.dir="%OLDPWD%""""
             )
             val gdrive = project.extensions.getByType(GDriveExtension::class.java)
-            if (gdrive.mainClass.isPresent) mainClassName.set(gdrive.mainClass.get())
+
+            mainClassName.convention(gdrive.mainClass)
 
             project.plugins.findPlugin("org.openjfx.javafxplugin")?.let {
                 jvmOptions.addAll(ConfigureJfx.getJvmOptions(libraryDir))

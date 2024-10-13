@@ -97,7 +97,7 @@ class OgerPlugin : Plugin<Project> {
             it.dependsOn("build")
 
             @Suppress("DEPRECATION") // we want to support deprecated fields
-            gdrive.type.map { type ->
+            gdrive.type.get().let { type ->
                 when (type) {
                     Type.INLINELIBRARY -> {
                         it.enabled = false
