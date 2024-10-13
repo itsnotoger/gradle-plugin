@@ -123,9 +123,13 @@ object ConfigureExtraJavaModule {
     }
 
     fun disableTestClasspath(project: Project) {
+        println("configure test classpath for $project")
         project.plugins.withType(JavaPlugin::class.java) {
+            println("configure test classpath for java $project")
             listOf("testCompileClasspath", "testRuntimeClasspath").forEach { configName ->
+                println("configure $configName for java $project")
                 project.configurations.named(configName).configure {
+                    println("configure $configName for java $project attribute set")
                     it.attributes.attribute(Attribute.of("javaModule", Boolean::class.javaObjectType), false)
                 }
             }

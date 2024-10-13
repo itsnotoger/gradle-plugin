@@ -1,6 +1,7 @@
 [![](https://jitpack.io/v/itsnotoger/gradle-plugin.svg)](https://jitpack.io/#itsnotoger/gradle-plugin)
 
 # gradle-plugin
+
 My Gradle plugin for Java projects
 
 It is written in Kotlin, but configures Java projects.
@@ -21,7 +22,8 @@ If you are able to have all your projects public, you do not need this plugin fu
 
 Secondly, it supports some **application publication modes** that I like.
 You can either publish Windows executable files (powered by the launch4j gradle plugin) or a fatjar.
-For these, JavaFx support is added as well (namely: pulling the dependencies via JavaFx gradle plugin, and adding the necessary launch options).
+For these, JavaFx support is added as well (namely: pulling the dependencies via JavaFx gradle plugin, and adding the
+necessary launch options).
 Overall, if you wanted to create a JavaFx executable, this makes the gradle code required to do so pretty small.
 
 ## Quick use guide for Gradle
@@ -51,3 +53,6 @@ plugins {
     id("com.github.itsnotoger.gradle-plugin") version "XXX" // see jitpack badge at the top of readme for latest version
 }
 ```
+
+It should locate your Google Drive installation automatically, but you can specify a system prop `Gdrive` or env
+variable `GDRIVE` if needed.
