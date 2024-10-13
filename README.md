@@ -54,5 +54,7 @@ plugins {
 }
 ```
 
+Supported Gradle versions >= `8.9` (adjust in `gradle-wrapper.properties`).
+
 It should locate your Google Drive installation automatically, but you can specify a system prop `Gdrive` or env
 variable `GDRIVE` if needed.
