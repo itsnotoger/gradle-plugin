@@ -67,26 +67,6 @@ class OgerPlugin : Plugin<Project> {
 
         val java = getByType(JavaPluginExtension::class.java)
         java.toolchain.languageVersion.set(JavaLanguageVersion.of(21))
-
-        val publishing = getByType(PublishingExtension::class.java)
-
-        gdrive.type.map { type ->
-            if (type.isLibrary()) {
-                java.withJavadocJar()
-                java.withSourcesJar()
-            }
-
-            if (type == Type.MAVENLIBRARY) {
-                publishing.repositories.add(gdriveRepo)
-                publishing.publications.register("auto", MavenPublication::class.java) {
-                    it.groupId = project.group.toString()
-                    it.artifactId = project.name
-                    it.version = project.version.toString()
-
-                    it.from(project.components.getByName("java"))
-                }
-            }
-        }
     }
 
     private fun applyTasks(project: Project) = project.tasks.apply {
@@ -212,6 +192,25 @@ class OgerPlugin : Plugin<Project> {
         if (type.isApplication()) {
             if (!gdrive.mainClass.isPresent && (type == Type.FATJARAPPLICATION || project.tasks.findByName("createExe")?.enabled == true)) {
                 println("WARNING: you set your type to application, but did not provide mainClass")
+            }
+        }
+
+        val java = project.extensions.getByType(JavaPluginExtension::class.java)
+        val publishing = project.extensions.getByType(PublishingExtension::class.java)
+
+        if (type.isLibrary()) {
+            java.withJavadocJar()
+            java.withSourcesJar()
+        }
+
+        if (type == Type.MAVENLIBRARY) {
+            publishing.repositories.add(gdriveRepo)
+            publishing.publications.register("auto", MavenPublication::class.java) {
+                it.groupId = project.group.toString()
+                it.artifactId = project.name
+                it.version = project.version.toString()
+
+                it.from(project.components.getByName("java"))
             }
         }
     }
